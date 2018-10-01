@@ -50,7 +50,7 @@ If you are using your own private registry you must modify registry.sh with the 
 
 This directory contains Helm charts for:
 
-* opendj  - A chart to deploy one or more OpenDJ instances
+* ds  - A chart to deploy one or more DS instances
 * amster  - A chart to install and configure OpenAM 
 * openam - A chart for the OpenAM runtime. Assumes OpenAM is
 installed already. This can scale up horizontally by increasing the replica count.
@@ -70,10 +70,10 @@ your own value overrides in a custom.yaml file that override just the values you
 change. You can then invoke Helm with your custom values. 
 
 For example,
-assume your ```custom.yaml`` file sets the DJ image tag to "test-4.1".
-You can deploy the OpenDJ chart using:
+assume your ```custom.yaml`` file sets the DS image tag to "test-4.1".
+You can deploy the DS chart using:
 
-```helm install -f custom.yaml opendj```
+```helm install -f custom.yaml ds```
 
 Further documentation can be found in each chart's README.md
 
@@ -96,18 +96,17 @@ Note that the details of the ingress will depend on the implementation. You may 
  
 # TLS
 
-To enable any of the products to use HTTPS on their external endpoint, set the following flag to true in your custom.yaml file.
-```
-useTLS: True
-```
+There is a single setting which controls the TLS strategy for your deployment: ```tlsStrategy: <value>```.   The values are as follows:
+* http  - no tls set. Using http only (unencrypted). This is the default setting.
+* https - tls enabled.  Provide own certificates.
+* https-cert-manager - tls enabled. Uses cert-Mmanager to automatically configure your certificate.
 
-The default behaviour when useTLS = true, is to have cert-manager to manage the certificate request/renewal via Let's Encrypt.  This is enabled by the following flag:
-```
-useCertManager: True
-```
+If ```tlsStrategy: https-cert-manager```, then the cert-manager deployment, which is deployed automatically as part of the bin/gke-ups.sh script, manages certificate request/renewal via Let's Encrypt. 
 
 If you want to use TLS but don't want cert-manager to manage the certificate request/renewal, then set
-useTLS to true, set useCertManager to false, and run the script ../bin/generate-tls.sh.
+```tlsStrategy: https```.  To use a self-signed certificate you can run the script ../bin/generate-tls.sh prior to deploying the helm chart.  This will automatically generate a self-signed certificate and deploy it into your namespace. Or you can provide your own.
+
+For further information on the above options, see the [DevOps developers guide](https://ea.forgerock.com/docs/platform/devops-guide/index.html#devops-implementation-env-https-access-secret).
 
 # Notes
 
@@ -120,13 +119,13 @@ shell into the container and run the export.sh script. This script will run Amst
 current configuration to /git.  
 
 
-The default OpenDJ deployment uses persistent volume claims (PVC) and
+The default DS deployment uses persistent volume claims (PVC) and
 StatefulSets to provide stateful deployment of the data tier. If you
 wish to start from scratch you should delete the PVC volumes.
 PVCs and StatefulSets are features introduced in Kubernetes 1.5. 
 
 If you are using Minikube take note that host path PVCs get deleted
-every time Minikube is restarted.  The opendj/ chart is a StatefulSet,
+every time Minikube is restarted.  The ds/ chart is a StatefulSet,
 and relies on auto provisioning.  If you restart Minikube, you may find you
 need to re-install OpenAM.
 
@@ -136,7 +135,7 @@ The script `helm/update-deps.sh` will update all of the dependencies. You must r
 
 # Tips
 
-To connect an LDAP browser to OpenDJ running in the cluster, use
+To connect an LDAP browser to DS running in the cluster, use
 port forwarding:
 
 kubectl port-forward opendj-configstore-0 1389:1389

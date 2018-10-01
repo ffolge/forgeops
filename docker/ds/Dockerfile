@@ -1,7 +1,7 @@
 
 FROM forgerock/downloader 
 
-ARG VERSION="6.5.0-M127.1"
+ARG VERSION="6.5.0-M129.1"
 # We are getting the snapshot version of DS
 RUN download -v $VERSION opendj
 
@@ -34,7 +34,7 @@ RUN chmod +x /usr/bin/tini
 COPY --from=1 /var/tmp/bootstrap/run/dsrs1 /opt/opendj/
 
 RUN useradd -d /opt/opendj -G root -m -u 11111 forgerock \
-    && apt-get update && apt-get install -y --no-install-recommends dumb-init vim
+    && apt-get update && apt-get install -y --no-install-recommends dumb-init vim fio
    
 WORKDIR /opt/opendj 
 

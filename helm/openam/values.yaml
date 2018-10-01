@@ -5,7 +5,7 @@
 component: openam
 
 image:
-  repository: gcr.io/engineering-devops/openam
+  repository: forgerock-docker-public.bintray.io/forgerock/openam
   tag: latest
   # For development we set this to Always to get the most current image:
   pullPolicy: IfNotPresent
@@ -42,16 +42,18 @@ catalinaOpts: >
 #-Dcom.sun.management.jmxremote.rmi.port=<port>
 #-Djava.rmi.server.hostname=$HOST_HOSTNAME
 
-# To enable any of the products to use HTTPS on their external endpoint, set the following flag to true.
-useTLS: false
-# The default behaviour when useTLS = true, is to have cert-manager to manage the certificate request/renewal via Let's Encrypt.
-# This is enabled by the following flag:
-useCertManager: true
+# Select TLS strategy for your deployment:
+# 1) http  - no tls set. Using http only (unencrypted).
+# 2) https - tls enabled.  Provide own certificates.
+# 3) https-cert-manager - tls enabled. Uses Cert-Manager to automatically generate certificates.
+# For options 2 and 3, see ../helm/README.md for more information.
+tlsStrategy: http
+
 
 # To use a tomcat web.xml from a k8s config map instead of the one built into the container, set the following to true.
 useConfigMapWebxml: false
 
-# Suffix for OpenDJ config store. We reuse the default baseDN of o=userstore.
+# Suffix for DS config store. We reuse the default baseDN of o=userstore.
 rootSuffix:  "o=userstore"
 
 # Valid logger types: fluent-bit, none
@@ -73,8 +75,7 @@ openamHome: /home/forgerock/openam
 createBootstrap: true
 
 # This is an optional path to a script to execute before AM starts up. It can copy in images, update the web.xml, etc.
-# The path is *relative* to /git/config/{{ configPath.am }}.
-# For example:   /git/config/6.5/my-config/am/customize-am.sh
+# If you change set it to the full path to your cloned configuration.  Example: /git/config/default/6.5/my-openam/custom.sh
 amCustomizationScriptPath: "customize-am.sh"
 
 # Liveness probe tuning - time in seconds
@@ -93,14 +94,15 @@ ingress:
   enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
     nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT,GET,POST,HEAD,OPTIONS,DELETE"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "cache-control,content-type,x-openidm-datastoretoken,x-openidm-oauth-login,x-requested-with"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "authorization,x-requested-with"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "false"
     nginx.ingress.kubernetes.io/cors-max-age: "600"
 
 # Audit log details for log streaming sidecar containers

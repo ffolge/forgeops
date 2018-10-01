@@ -1,1 +1,5 @@
-djInstance: userstore
+instance: userstore
+
+image:
+  pullPolicy: Always
+  tag: latest

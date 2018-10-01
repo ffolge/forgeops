@@ -13,7 +13,7 @@ component: amster
 serverBase: http://openam:80
 
 
-# The top level domain (including the leading .). This excludes the openam component. 
+# The top level domain (including the leading .). This excludes the openam component.
 domain: .forgeops.com
 
 # Install passwords.
@@ -38,10 +38,17 @@ config:
   strategy: git
 
 image:
-  repository: gcr.io/engineering-devops/amster
-  tag: latest
+  repository: forgerock-docker-public.bintray.io/forgerock/amster
+  tag: 6.5.0-M7
   pullPolicy: IfNotPresent
   #pullPolicy: Always
+  
+# Select TLS strategy for your deployment:
+# 1) http  - no tls set. Using http only (unencrypted).
+# 2) https - tls enabled.  Provide own certificates.
+# 3) https-cert-manager - tls enabled. Uses Cert-Manager to automatically generate certificates.
+# For options 2 and 3, see ../helm/README.md for more information.
+tlsStrategy: http
 
 configStore:
   # type can be dirServer or embedded.
@@ -78,16 +85,12 @@ resources:
 
 # Optional value overrides
 
-# version. This sets the environment variable VERSION which is used by amster / commons config to
-# mass update the amster version tag on import. The amster configuration contains &{version} (see forgeops-init)
-version: 6.0.0
-
 # fqdn - the openam server external fqdn.
 # If this is *not* set, it defaults to openam.{namespace}{{ .Values.domain }}
 #fqdn: openam.acme.com
 
 # ctsStores - is a csv separated list of avaiable cts servers. This is referenced in the amster configuration as &{ctsStores} on
-# import. 
+# import.
 #ctsStores: ctsstore-0.ctsstore:1389
 
 # ctsPassword - defaults to "password"

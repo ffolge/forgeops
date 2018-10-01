@@ -1,14 +1,22 @@
+image:
+  #repository: forgerock-docker-public.bintray.io/ds
+  repository: gcr.io/engineering-devops/ds
+  tag: 6.5.0-M0
+  pullPolicy: Always
+  
 bootstrapType: cts
 
-djInstance: ctsstore
+instance: ctsstore
 
 resources:
   limits:
     memory: 14Gi
+    cpu: 10000m
   requests:
     memory: 10Gi
+    cpu: 8000m
 
-storageSize: 500Gi
+storageSize: 850Gi
 storageClass: fast
 
 # For JDK 8

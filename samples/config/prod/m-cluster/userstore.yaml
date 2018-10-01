@@ -1,10 +1,18 @@
-djInstance: userstore
+image:
+  #repository: forgerock-docker-public.bintray.io/ds
+  repository: gcr.io/engineering-devops/ds
+  tag: 6.5.0-M0
+  pullPolicy: Always
+  
+instance: userstore
 
 resources:
   limits:
     memory: 11Gi
+    cpu: 8000m
   requests:
     memory: 8Gi
+    cpu: 2000m
 
 # For JDK 8
 opendjJavaArgs: >
@@ -20,7 +28,7 @@ opendjJavaArgs: >
 cts:
   enabled: false
 
-storageSize: 500Gi
+storageSize: 512Gi
 storageClass: fast
 
 replicas: 2
@@ -37,4 +45,4 @@ backup:
 
 # If existing database is found then restore is always skipped
 restore:
-  enabled: false
+  enabled: true

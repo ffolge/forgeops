@@ -1,27 +1,21 @@
-# Platform Sample
+# Platform OAuth2 Sample
 
-This is a sample project demonstrates one way to use four components of the ForgeRock Identity Platform (AM, DJ, IDM and IG). This sample demonstrates these capabilities:
+This is a sample project demonstrates one way to use four components of the ForgeRock Identity Platform (AM, DS, IDM and IG). This sample demonstrates these capabilities:
 
-External DJ cluster as a shared user store for AM and IDM
-Facebook authentication with AM
-Delegation of all self-service features to IDM (including automatic redirection to IDM during social authentication)
-Unification of end-user interfaces - using CORS to facilitate the seamless interaction of the various back-end services
+IG protecting IDM as an OAuth2 Resource Server for end-user interaction
 
-Docker, Kubernetes and Helm are used to automate the deployment of this sample. It is intentionally oversimplified in terms of its Kubernetes configuration. This sample may be useful to show the minimum necessary Kubernetes configuration, but it should not be considered a template for a production deployment. Refer to the other areas of forgeops for production-ready templates.
+External DS cluster as a shared user store for AM and IDM
 
-## Optional Facebook usage
+**There is no OAuth2 client shipped with this sample**. Refer to the [Example OAuth 2 Clients Project](https://github.com/ForgeRock/exampleOAuth2Clients) to find a sample client that will be the most useful for your needs.
 
-If you want to enable Facebook for social registration and login, you will need to register an application within Facebook. You will need to make sure your Facebook App has these redirect urls registered:
+Docker, Kubernetes and Helm are used to automate the deployment of this sample. The main "openam" and "ds" helm charts are used to start those services. The configuration for all of the products is stored within this sample folder:
 
-    http://client-service.sample.svc.cluster.local/oauthReturn/
-    http://am-service.sample.svc.cluster.local/openam
+ - "amster" contains the AM configuration
+ - "rs" contains the IG configuration
+ - "idm" contains the IDM configuration
+ - "pg" contains the PostgreSQL configuration (used for IDM workflow)
 
-Save the App Id and Secret as environment variables, like so:
-
-    export IDP_FACEBOOK_CLIENTID=<Your Facebook App Id>
-    export IDP_FACEBOOK_CLIENTSECRET=<Your Facebook App Secret>
-
-If you don't want to use Facebook, the default values of "FakeID" and "FakeSecret" will be used. Facebook will still appear in your AM and IDM environments as an option, but it won't be functional.
+ The helm charts included under the "templates" folder are intentionally oversimplified in terms of their Kubernetes configuration. They should not be considered a pattern for a production deployment. Refer to the other areas of forgeops for production-ready templates.
 
 ## Running the Sample
 
@@ -32,10 +26,10 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
     This creates the minikube VM, enables the ingress addon, adds a new namespace to your kubectl config, and initializes the helm tiller:
 
     ```
-    minikube start --insecure-registry 10.0.0.0/24 --memory 4096
-    minikube addons enable ingress
-    kubectl config set-context sample-context --namespace=sample --cluster=minikube --user=minikube
-    sleep 2
+    minikube start --insecure-registry 10.0.0.0/24 --memory 4096 && \
+    minikube addons enable ingress && \
+    kubectl config set-context sample-context --namespace=sample --cluster=minikube --user=minikube && \
+    sleep 2 && \
     helm init --wait
     ```
 
@@ -44,8 +38,8 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
     These commands fix a bug in minikube related to loopback networking, prepare your Docker environment to point to the minikube Docker service, and instructs kubectl to use the proper namespace for this sample.
 
     ```
-    minikube ssh "sudo ip link set docker0 promisc on"
-    eval $(minikube docker-env)
+    minikube ssh "sudo ip link set docker0 promisc on" && \
+    eval $(minikube docker-env) && \
     kubectl config use-context sample-context
     ```
 
@@ -55,16 +49,14 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
     **Option 1**: If you want to simply run the sample as quickly as possible and do not expect to make changes to it yourself, simply install the published helm chart:
 
     ```
-    helm repo add forgerock https://storage.googleapis.com/forgerock-charts
-    helm install forgerock/fr-platform -n sample-fr-platform \
-      --set-string social.facebook.id=${IDP_FACEBOOK_CLIENTID} \
-      --set-string social.facebook.secret=${IDP_FACEBOOK_CLIENTSECRET}
+    helm dep build . && \
+    helm install . -n sample-fr-platform
     ```
 
     **Option 2:** If you want to work on the sample, you can use the "[skaffold](https://github.com/GoogleContainerTools/skaffold)" tool to quickly build and deploy the images:
 
     ```
-    skaffold dev &
+    skaffold dev
     ```
 
     This will build the docker images and incorporate them into the helm templates, followed by managing the release of the chart. Any changes made to the configuration files for each docker image will be watched by skaffold, and will result in an automatic rebuild of the image followed by a redeployment into the cluster.
@@ -74,10 +66,9 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
 
     If you are using minikube, use these commands:
     ```
-    grep -v client-service.sample.svc.cluster.local /etc/hosts \
+    grep -v rs-service.sample.svc.cluster.local /etc/hosts \
     | sudo tee /etc/hosts && \
     echo "$(minikube ip) \
-        client-service.sample.svc.cluster.local \
         am-service.sample.svc.cluster.local \
         rs-service.sample.svc.cluster.local" \
     | sudo tee -a /etc/hosts
@@ -85,11 +76,10 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
 
     If your cluster is available directly, you can use these commands instead:
     ```
-    grep -v client-service.sample.svc.cluster.local /etc/hosts \
+    grep -v rs-service.sample.svc.cluster.local /etc/hosts \
     | sudo tee /etc/hosts && \
     echo "$( kubectl get ing -o \
         jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}' ) \
-        client-service.sample.svc.cluster.local \
         am-service.sample.svc.cluster.local \
         rs-service.sample.svc.cluster.local" \
     | sudo tee -a /etc/hosts
@@ -103,21 +93,35 @@ If you don't want to use Facebook, the default values of "FakeID" and "FakeSecre
 
     When all pods report that they are in a ready state, hit Ctrl^C to exit.
 
-6. You can access the application by opening this URL:
+6. Create sample users in your environment:
 
     ```
-    http://client-service.sample.svc.cluster.local
+    kubectl exec -it configstore-0 /opt/opendj/scripts/make-users.sh 10
     ```
 
-    You can use amadmin / password to login.
+    This will create 10 users (from user.0 through user.9) in your DS repository.
 
-7. You can remove the sample like so:
+7. You can access the platform by opening this URL:
+
+    ```
+    http://am-service.sample.svc.cluster.local/openam/console
+    ```
+
+    You can use amadmin / password to login as the am admin.
+    You can use user.0  / password to login as a basic end-user.
+
+8. You can now start a sample OAuth2 client from the [Example OAuth 2 Clients Project](https://github.com/ForgeRock/exampleOAuth2Clients).
+
+9. You can remove the sample like so:
+
+    If you started the sample with Option 1 from step 3, then stop it like so:
     ```
     helm delete --purge sample-fr-platform
     ```
 
-    And if you are using minikube, you can reset the whole environment with this command:
+    If you used Option 2, then just hit Ctrl^c to exit skaffold. It will automatically remove the running processes.
 
+    If you are using minikube, you can remove the whole environment with this command:
     ```
     minikube delete
     ```
@@ -129,9 +133,6 @@ When you are done making changes to the base configuration, you can create final
 Build the Docker images for this sample:
 
     docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/rs:latest rs
-    docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/client:latest client
-    docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/dj:latest dj
-    docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/am:latest am
     docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/amster:latest amster
     docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/idm:latest idm
     docker build -t forgerock-docker-public.bintray.io/forgerock/sample-fr-platform/pg:latest pg
@@ -146,9 +147,9 @@ You now have a file names something like fr-platform-6.5.0-SNAPSHOT.tgz that you
 
 ## Connecting to your cluster
 
-To make the internal DJ cluster accessible locally:
+To make the internal DS cluster accessible locally:
 
-    kubectl port-forward dj-0 2389:1389 &
+    kubectl port-forward ds-0 2389:1389 &
 
 ## Saving configuration changes
 

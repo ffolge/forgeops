@@ -6,7 +6,10 @@
 #
 # Usage:  Run ./build.sh -?
 set -e
-cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
+# https://stackoverflow.com/questions/59895/getting-the-source-directory-of-a-bash-script-from-within
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+cd $DIR
 
 # Default settings. You can set these all via command switches as well.
 REGISTRY="forgerock-docker-public.bintray.io"
@@ -93,8 +96,8 @@ if [ -n "$BUILD_CSV" ]; then
       ${DRYRUN} docker build  $NETWORK --build-arg VERSION=$artifact -t $folder $folder
 
       # For each registry we support ()
-      for reg in "gcr.io/engineering-devops"
-      # for reg in "gcr.io/engineering-devops" "forgerock-docker-internal.bintray.io" 
+      # for reg in "gcr.io/engineering-devops"
+      for reg in "gcr.io/engineering-devops" "forgerock-docker-public.bintray.io/forgerock" 
       do
           # We always tag with the artifact
           img="${reg}/${folder}:${artifact}"

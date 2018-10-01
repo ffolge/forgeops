@@ -25,8 +25,8 @@ config:
 component: openidm
 
 image:
-  repository: gcr.io/engineering-devops/openidm
-  tag: latest
+  repository: forgerock-docker-public.bintray.io/forgerock/openidm
+  tag: 6.5.0-M3
   pullPolicy: IfNotPresent
   # For development use Always
   # pullPolicy: Always
@@ -34,27 +34,28 @@ image:
 # override Java JVM options.
 javaOpts: "-Xmx1024m -server -XX:+UseG1GC"
 
-# To enable any of the products to use HTTPS on their external endpoint, set the following flag to true.
-useTLS: false
-# The default behaviour when useTLS = true, is to have cert-manager to manage the certificate request/renewal via Let's Encrypt.  
-# This is enabled by the following flag:
-useCertManager: true
+# Select TLS strategy for your deployment:
+# 1) http  - no tls set. Using http only (unencrypted).
+# 2) https - tls enabled.  Provide own certificates.
+# 3) https-cert-manager - tls enabled. Uses Cert-Manager to automatically generate certificates.
+# For options 2 and 3, see ../helm/README.md for more information.
+tlsStrategy: http
 
 # Specific values
 openidm:
   repo:
     # DS external repo
-    host: userstore-0.userstore
-    port: 1389
-    user: "cn=Directory Manager"
-    password: password
+    # host: userstore-0.userstore
+    # port: 1389
+    # user: "cn=Directory Manager"
+    # password: password
     # postgres values
-    # host: postgresql
-    # port: 5432
-    # user: openidm
-    # password: openidm
-    # schema: openidm
-    # databaseName: openidm
+     host: postgresql
+     port: 5432
+     user: openidm
+     password: openidm
+     schema: openidm
+     databaseName: openidm
   # Optional client secret for AM/IDM integration:
   idpconfig:
     clientsecret: password
@@ -62,7 +63,7 @@ openidm:
     username: prometheus
     password: prometheus
 
-# Optional - if there is a DJ userstore configured for synchornization or explict mapping when DJ is used as repo
+# Optional - if there is a DS userstore configured for synchornization or explict mapping when DS is used as repo
 userstore:
   host: userstore-0.userstore
   password: password

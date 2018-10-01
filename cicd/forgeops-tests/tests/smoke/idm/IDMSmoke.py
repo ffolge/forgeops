@@ -125,8 +125,12 @@ class IDMSmoke(unittest.TestCase):
                    'Cache-Control': 'no-cache'}
         params = {'_action': 'submitRequirements'}
         resp = post(url=self.idmcfg.rest_selfreg_url, params=params, headers=headers, json=user_data)
-        print(resp.text)
+        token = resp.json()["token"]
+        user_data["token"] = token
+        resp = post(url=self.idmcfg.rest_selfreg_url, params=params, headers=headers, json=user_data)
+
         self.assertEqual(200, resp.status_code)
+        self.assertTrue(resp.json()['status']['success'], "Expecting success in returned json")
 
     def test_7_user_reset_pw(self):
         """Test to use self service password reset as user"""

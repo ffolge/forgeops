@@ -4,10 +4,10 @@ install-openam --serverUrl OPENAM_INSTANCE \
 --cookieDomain cluster.local \
 --adminPwd password \
 --cfgStore dirServer \
---cfgStoreHost dj-0.dj-service \
+--cfgStoreHost configstore-0.configstore \
 --cfgStoreDirMgrPwd password  \
 --cfgStorePort 1389  \
---cfgStoreRootSuffix dc=example,dc=com \
+--cfgStoreRootSuffix o=userstore \
 --acceptLicense \
 --cfgDir /home/forgerock/openam
 :exit

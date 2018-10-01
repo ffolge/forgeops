@@ -1,43 +1,31 @@
 amster:
   domain: .example.com
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/amster
 
 openam:
   domain: .example.com
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/openam
 
 openig:
   domain: .example.com
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/openig
 
 openidm:
   domain: .example.com
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/openidm
 
 userstore:
-  djInstance: userstore
-  djPersistence: false
+  instance: userstore
+  persistence: false
   opendjJavaArgs: "-Xmx400m"
   resources:
     limits:
       memory: 600Mi
     requests:
       memory: 400Mi
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/ds
 
 configstore:
-  djInstance: configstore
-  djPersistence: false
+  instance: configstore
+  persistence: false
   opendjJavaArgs: "-Xmx400m"
   resources:
     limits:
       memory: 600Mi
     requests:
       memory: 400Mi
-  image:
-    repository: forgerock-docker-public.bintray.io/forgerock/ds
