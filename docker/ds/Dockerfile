@@ -1,8 +1,7 @@
 
 FROM forgerock/downloader 
 
-ARG VERSION="6.5.0-M129.1"
-# We are getting the snapshot version of DS
+ARG VERSION="6.5.0-M129.2"
 RUN download -v $VERSION opendj
 
 # JDK 11 tracking - https://bugster.forgerock.org/jira/browse/OPENDJ-5207
@@ -16,10 +15,12 @@ COPY bootstrap/ /var/tmp/bootstrap/
 COPY schema /var/tmp/schema
 
 # The default BASE_DN of the directory tree.
-ENV BASE_DN o=userstore
+ENV BASE_DN dc=data
 
 # This speeds up docker cloudbuild considerably
 ENV OPENDJ_JAVA_ARGS "-Djava.security.egd=file:/dev/./urandom"
+# REAPER can be "TTL", "HYBRID". If REAPER is "" or missing then AM reaping profile will be used.
+ENV REAPER_TYPE=""
 
 RUN ./setup.sh
 

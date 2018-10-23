@@ -30,11 +30,13 @@ spec:
         - configMapRef:
             name:  {{ default "frconfig" .Values.config.name  }}
       {{ end }}
+      # The init containers below should be removed once file based configuration is in place.
       - name: wait-for-configstore
         image: "forgerock-docker-public.bintray.io/forgerock/util:6.0.0"
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         args: [ "wait", "{{ .Values.configLdapHost }}", "{{ .Values.configLdapPort }}" ]
-      # todo: pull the util image scripts into a generic alpine image. Use a configmap for the scripts
+      # Until file based config is in place, we must use the 6.0.0 tag of the util image.
+      # The updated 6.5.0 image does not copy in the keystore files
       - name: bootstrap
         image: forgerock-docker-public.bintray.io/forgerock/util:6.0.0
         imagePullPolicy:  {{ .Values.image.pullPolicy }}
@@ -61,6 +63,12 @@ spec:
         volumeMounts:
         - name: openam-root
           mountPath: /home/forgerock/openam
+        - name: configstore-secret
+          mountPath: /var/run/secrets/configstore
+        - name: openam-secrets
+          mountPath: /var/run/secrets/openam/keystore
+        - name: openam-pstore-secrets
+          mountPath: /var/run/secrets/openam/password
         {{ if eq .Values.config.strategy  "git" }}
         - name: git
           mountPath: /git
@@ -123,6 +131,9 @@ spec:
       - name: openam-secrets
         secret:
           secretName: openam-secrets
+      - name: openam-pstore-secrets
+        secret:
+          secretName: openam-pstore-secrets
       - name: openam-boot
         configMap:
           name: boot-json

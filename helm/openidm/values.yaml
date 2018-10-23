@@ -18,28 +18,26 @@ config:
   path: /git/config/6.5/default/idm/sync-with-ldap-bidirectional
   #
   # strategy defines how products get their configuration .
-  # Using the git strategy, each helm chart pulls the configurtion from git using an init container.
+  # Using the git strategy, each helm chart pulls the configuration from git using an init container.
   strategy: git
+  # If immutable is true, IDM  will not persist any configuration changes made in the admin UI (or via admin REST calls)
+  # back out to the file system. If you are developing and want to IDM to write configuration changes back out
+  # so they can saved and committed to git, set this to false.
+  immutable: true
+
 
 # Used to form the FQDN  - see _helpers.tpl
 component: openidm
 
 image:
   repository: forgerock-docker-public.bintray.io/forgerock/openidm
-  tag: 6.5.0-M3
+  tag: 6.5.0-M5
   pullPolicy: IfNotPresent
   # For development use Always
   # pullPolicy: Always
 
 # override Java JVM options.
 javaOpts: "-Xmx1024m -server -XX:+UseG1GC"
-
-# Select TLS strategy for your deployment:
-# 1) http  - no tls set. Using http only (unencrypted).
-# 2) https - tls enabled.  Provide own certificates.
-# 3) https-cert-manager - tls enabled. Uses Cert-Manager to automatically generate certificates.
-# For options 2 and 3, see ../helm/README.md for more information.
-tlsStrategy: http
 
 # Specific values
 openidm:
@@ -68,7 +66,7 @@ userstore:
   host: userstore-0.userstore
   password: password
   port: 1389
-  basecontext: "o=userstore"
+  basecontext: "dc=data"
 
 service:
   name: openidm
@@ -94,8 +92,6 @@ ingress:
   annotations:
     # Nginx specific annotations
     nginx.ingress.kubernetes.io/affinity: "cookie"
-    nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 
 # Audit log details for log streaming sidecar containers

@@ -34,9 +34,11 @@ The provided cmp-platform chart bundles other foundational charts such opendj, f
  openam, etc. Performing a `helm install cmp-platform`  will deploy all the components.
  Remember to perform a `helm dep up cmp-platform` to update any dependencies that might have changed.
 
- In general we recommend that charts be deployed individually as it makes it easier to debug and
- to redeploy a single component at a time.
+This chart is a simple example for use only when working through the *DevOps 
+ Quick Start Guide* only.  
 
+For all other deployments, install individual Helm charts as described in the 
+ *DevOps Developer's Guide*. 
  
 # Using a private registry
 
@@ -96,15 +98,28 @@ Note that the details of the ingress will depend on the implementation. You may 
  
 # TLS
 
-There is a single setting which controls the TLS strategy for your deployment: ```tlsStrategy: <value>```.   The values are as follows:
-* http  - no tls set. Using http only (unencrypted). This is the default setting.
-* https - tls enabled.  Provide own certificates.
-* https-cert-manager - tls enabled. Uses cert-Mmanager to automatically configure your certificate.
+All charts default to using TLS (https) for the inbound ingress.  
 
-If ```tlsStrategy: https-cert-manager```, then the cert-manager deployment, which is deployed automatically as part of the bin/gke-ups.sh script, manages certificate request/renewal via Let's Encrypt. 
+Within a namespace, it is assumed that a single wildcard certificate secret is present `wildcard.$namespace.$domain`. This
+secret is referenced by each ingress controller in the `tls` spec.
 
-If you want to use TLS but don't want cert-manager to manage the certificate request/renewal, then set
-```tlsStrategy: https```.  To use a self-signed certificate you can run the script ../bin/generate-tls.sh prior to deploying the helm chart.  This will automatically generate a self-signed certificate and deploy it into your namespace. Or you can provide your own.
+You can create the wildcard secret manually, but in these examples we assume
+that [cert-manager](https://github.com/jetstack/cert-manager) is installed and is provisioning certificates for you.
+
+
+The frconfig chart defaults to creating a cert-manager "CA" issuer. This is a simple issuer that issues certificates signed by a CA certificate installed as part of the frconfig chart. We have included a default CA certificate in frconfig/secrets. You can replace this with your own using the sample script `frconfig/secrets/cm.sh`, or replace it with an intermediate signing certificate issued by your organization.
+
+If you are on minikube, cert-manager can be installed using:
+
+`helm upgrade -i cert-manager --namespace kube-system stable/cert-manager`
+
+If you deploy the frconfig chart as-is: `helm install frconfig`  things should "just work". You will get a
+self signed certificate presented to the browser. You must accept the browser warnings, or import the CA cert found in frconfig/secrets into your browser's trusted certificate list.
+
+Alternatively, you can configure frconfig to create a cert-manager issuer for Let's Encrypt. Refer to the cert-manager docs for further details.
+
+If you do not see a secret `wildcard.$namespace.$domain`, it means that something has gone wrong with cert manager. Look in the cert-manager logs to find the cause. If you are using the Let's Encrypt issuer, keep in mind that it can take up to 10 minutes to provision a certificate.
+
 
 For further information on the above options, see the [DevOps developers guide](https://ea.forgerock.com/docs/platform/devops-guide/index.html#devops-implementation-env-https-access-secret).
 

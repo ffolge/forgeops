@@ -9,6 +9,14 @@ domain: .forgeops.com
 image:
   repository: forgerock-docker-public.bintray.io/gatling:6.5.0
   pullPolicy: Always
+  
+config:
+  # Name of the configMap that holds the configuration repository URL and of
+  # the secret required to access it.
+  name: frconfig
+  # strategy defines how products get their configuration .
+  # Using the git strategy, each helm chart pulls the configuration from git using an init container.
+  strategy: git
 
 benchmark:
   # Name of scala test name to run
@@ -28,7 +36,7 @@ benchmark:
 
   testname: am.AMAccessTokenSim
   
-  # By default, simulation will be run aumotically after deployment.
+  # By default, simulation will be run automatically after deployment.
   # Change to false force Gatling to wait for trigger.
   # To trigger simulation if false, add ready file to gatling init-container:
   # kubectl exec <podname> -c forgeops-benchmark-gatling touch /ready

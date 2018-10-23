@@ -36,11 +36,15 @@
     </init-param>
     <init-param>
     <param-name>cors.allowed.methods</param-name>
-    <param-value>GET,POST,HEAD,OPTIONS,PUT,DELETE</param-value>
+    <param-value>GET,POST,HEAD,PATCH,PUT,DELETE</param-value>
     </init-param>
     <init-param>
     <param-name>cors.allowed.headers</param-name>
-    <param-value>Content-Type,X-OpenIDM-NoSession,X-OpenIDM-Username,X-OpenIDM-Password,X-Requested-With,Cache-Control,authorization,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers</param-value>
+    <param-value>Content-Type,X-OpenIDM-NoSession,X-OpenIDM-Username,X-OpenIDM-Password,X-Requested-With,Cache-Control,authorization,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,If-Match</param-value>
+    </init-param>
+    <init-param>
+    <param-name>cors.exposed.headers</param-name>
+    <param-value>WWW-Authenticate</param-value>
     </init-param>
     <init-param>
     <param-name>cors.support.credentials</param-name>
